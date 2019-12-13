@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,6 +23,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +68,7 @@ import java.util.List;
 
 import static android.Manifest.permission.CAMERA;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.graphics.Color.WHITE;
 import static org.opencv.imgproc.Imgproc.INTER_AREA;
 import static org.opencv.imgproc.Imgproc.resize;
 
@@ -82,6 +87,14 @@ public class MainActivity extends AppCompatActivity
     private static final int MAX_LABEL_RESULTS = 10;
     private static final int MAX_DIMENSION = 1200;
     public  TextView imageDetail;
+    public TextView Here;
+    public float myEye_x;
+    public float myEye_y;
+    Canvas mcanvas;
+    Paint mpaint;
+    public boolean flag = false;
+    public boolean stop_flag = false;
+
 
     public native void ConvertRGBtoGray(long matAddrInput, long matAddrResult);
 
@@ -135,12 +148,19 @@ public class MainActivity extends AppCompatActivity
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        myEye_x = 0;
+        myEye_y = 0;
+        mpaint = new Paint();
+        mpaint.setColor(WHITE);
+
         mCameraView = findViewById(R.id.CameraView);
         mCameraView.setVisibility(SurfaceView.INVISIBLE);
         mCameraView.setCvCameraViewListener(this);
         mCameraView.enableView();
         mCameraView.setCameraIndex(1); // rear = 0, front = 1
         imageDetail = findViewById(R.id.textView1);
+        Here = findViewById(R.id.textHere);
+
 
         Button b1 = (Button) findViewById(R.id.button1);
         Button b2 = (Button) findViewById(R.id.button2);
@@ -149,6 +169,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 mCameraView.setVisibility(View.VISIBLE);
                 Log.d("test", "액티비티-서비스 시작버튼클릭");
+                flag = true;
             }
         });
 
@@ -157,6 +178,7 @@ public class MainActivity extends AppCompatActivity
                 // 서비스 종료하기
                 mCameraView.setVisibility(View.INVISIBLE);
                 Log.d("test", "액티비티-서비스 종료버튼클릭");
+                flag = false;
 
             }
         });
@@ -174,7 +196,18 @@ public class MainActivity extends AppCompatActivity
 
         Bitmap newBit = Bitmap.createBitmap(mRgbaT.width(), mRgbaT.height(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(mRgbaT, newBit);
-        callCloudVision(newBit);
+
+        if(flag == true) {
+            if(stop_flag == false) {
+                stop_flag = true;
+                callCloudVision(newBit);
+                Here.setX(myEye_x);
+                Here.setY(200+myEye_y);
+                Log.d("x", "myEye_x" + myEye_x);
+                Log.d("y", "myEye_y" + myEye_y);
+                stop_flag = false;
+            }
+        }
 
         return mRgbaT;
     }
@@ -191,6 +224,7 @@ public class MainActivity extends AppCompatActivity
             Log.d(TAG, "failed to make API request because of other IOException " +
                     e.getMessage());
         }
+
     }
 
     /**
@@ -312,6 +346,7 @@ public class MainActivity extends AppCompatActivity
             if (activity != null && !activity.isFinishing()) {
                 imageDetail.setText(result);
             }
+            stop_flag = false;
         }
     }
 
@@ -346,6 +381,8 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
 
+                        myEye_x = (lefteye_x + righteye_x) / 2;
+                        myEye_y = (lefteye_y + righteye_y) / 2;
                         message.append(String.valueOf((lefteye_x + righteye_x) / 2));
                         message.append("   ");
                         message.append(String.valueOf((lefteye_y + righteye_y) / 2));

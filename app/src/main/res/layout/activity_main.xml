@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/Relativelayout_1"
     >
 
     <TextView
@@ -42,5 +43,14 @@
         android:layout_height="match_parent"
         android:visibility="visible" />
 
-</RelativeLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="5dp"
+        android:text="HERE"
+        android:id="@+id/textHere"
+        android:textColor="#FFFFFF"
+        android:layout_marginLeft="40dp"
+        android:layout_marginTop="80dp"/>
 
+</RelativeLayout>
